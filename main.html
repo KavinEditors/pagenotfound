@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>404</title>
+
+<style>
+
+body{
+margin:0;
+overflow:hidden;
+background:black;
+font-family:monospace;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+flex-direction:column;
+}
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+z-index:-1;
+}
+
+.glitch{
+font-size:120px;
+font-weight:bold;
+position:relative;
+}
+
+.glitch::before,
+.glitch::after{
+content:"404";
+position:absolute;
+left:0;
+top:0;
+}
+
+.glitch::before{
+color:red;
+z-index:-1;
+animation:glitch1 0.5s infinite;
+}
+
+.glitch::after{
+color:cyan;
+z-index:-2;
+animation:glitch2 0.5s infinite;
+}
+
+@keyframes glitch1{
+0%{transform:translate(2px,0)}
+50%{transform:translate(-2px,2px)}
+100%{transform:translate(2px,-2px)}
+}
+
+@keyframes glitch2{
+0%{transform:translate(-2px,0)}
+50%{transform:translate(2px,-2px)}
+100%{transform:translate(-2px,2px)}
+}
+
+.text{
+font-size:22px;
+opacity:0.7;
+margin-top:10px;
+}
+
+button{
+margin-top:25px;
+padding:10px 20px;
+background:black;
+border:1px solid white;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:white;
+color:black;
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="particles"></canvas>
+
+<div class="glitch">404</div>
+<div class="text">PAGE NOT FOUND</div>
+<button onclick="location.href='/'">GO HOME</button>
+
+<script>
+
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+for(let i=0;i<120;i++){
+particles.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+vx:(Math.random()-0.5)*0.5,
+vy:(Math.random()-0.5)*0.5,
+size:Math.random()*2
+});
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+particles.forEach(p=>{
+
+p.x+=p.vx;
+p.y+=p.vy;
+
+if(p.x<0||p.x>canvas.width) p.vx*=-1;
+if(p.y<0||p.y>canvas.height) p.vy*=-1;
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+ctx.fillStyle="white";
+ctx.fill();
+
+});
+
+requestAnimationFrame(animate);
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
