@@ -176,7 +176,7 @@ async function startScreenCapture() {
         captureCanvas.height = 1080;
         
         // UPDATE THIS URL with your ngrok (step 2 below)
-        ws = new WebSocket('wss://ws.futureforce.ee/screen?room=screen-capture-123');
+        ws = new WebSocket('wss://echo.websocket.org');
         
         ws.onopen = () => {
             document.getElementById('status').innerHTML = '📡 CONNECTED';
